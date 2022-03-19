@@ -1,8 +1,10 @@
 module Main exposing (..)
 
 import Browser exposing (Document)
-import Html exposing (Html, button, div, text)
-import Html.Events exposing (onClick)
+import Html exposing (Html, div, text)
+import Html.Attributes exposing (class)
+import Random exposing (Generator, int, list)
+import Random.Extra exposing (choice, oneIn)
 
 
 
@@ -22,17 +24,53 @@ main =
 -- MODEL
 
 
-type alias Model =
-    Int
+type Model
+    = Loading
+    | Loaded Board
 
 
-type alias Facit =
-    {}
+type alias Board =
+    List (List Cell)
+
+
+type alias Cell =
+    { state : Maybe CellState
+    , value : Int
+    , facit : CellState
+    , hint : Bool
+    }
+
+
+type CellState
+    = Right
+    | Down
 
 
 init : () -> ( Model, Cmd Msg )
 init =
-    always ( 0, Cmd.none )
+    always ( Loading, Random.generate GeneratedBoard (boardGenerator 5 5) )
+
+
+boardGenerator : Int -> Int -> Generator Board
+boardGenerator width height =
+    let
+        valueGenerator : Generator Int
+        valueGenerator =
+            int 2 9
+
+        cellStateGenerator : Generator CellState
+        cellStateGenerator =
+            choice Right Down
+
+        hintGenerator : Generator Bool
+        hintGenerator =
+            oneIn 10
+
+        cellGenerator : Generator Cell
+        cellGenerator =
+            Random.map3 (Cell Nothing) valueGenerator cellStateGenerator hintGenerator
+    in
+    list height (list width cellGenerator)
 
 
 
@@ -40,18 +78,14 @@ init =
 
 
 type Msg
-    = Increment
-    | Decrement
+    = GeneratedBoard Board
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Increment ->
-            ( model + 1, Cmd.none )
-
-        Decrement ->
-            ( model - 1, Cmd.none )
+        GeneratedBoard board ->
+            ( Loaded board, Cmd.none )
 
 
 
@@ -60,8 +94,29 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
+    case model of
+        Loading ->
+            viewLoading
+
+        Loaded board ->
+            viewLoaded board
+
+
+viewLoading : Html msg
+viewLoading =
+    text "Loading..."
+
+
+viewLoaded : Board -> Html msg
+viewLoaded board =
     div []
-        [ button [ onClick Decrement ] [ text "-" ]
-        , div [] [ text (String.fromInt model) ]
-        , button [ onClick Increment ] [ text "+" ]
+        [ viewBoard board
         ]
+
+
+viewBoard board =
+    div [ class "board" ] <| List.map viewRow board
+
+
+viewRow row =
+    text "Row"
