@@ -2,8 +2,10 @@
   "name": "produkt",
   "version": "1.0.0",
   "description": "Simple game about multiplication",
-  "main": "index.js",
+  "source": "src/index.html",
   "scripts": {
+    "start": "parcel",
+    "build": "parcel build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -17,6 +19,9 @@
   },
   "homepage": "https://github.com/simonolander/produkt#readme",
   "devDependencies": {
-    "elm-format": "^0.8.5"
+    "@parcel/transformer-elm": "^2.4.0",
+    "elm": "^0.19.1-5",
+    "elm-format": "^0.8.5",
+    "parcel": "^2.4.0"
   }
 }
