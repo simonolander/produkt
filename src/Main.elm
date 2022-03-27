@@ -4,7 +4,7 @@ import Browser exposing (Document)
 import Html exposing (Html, button, div, span, text)
 import Html.Attributes exposing (class, disabled)
 import Html.Events exposing (onClick)
-import List exposing (all, foldl, indexedMap, maximum, member, sort)
+import List exposing (all, foldl, indexedMap, maximum, member, singleton, sort)
 import List.Extra exposing (remove, transpose, zip)
 import Maybe exposing (withDefault)
 import Random exposing (Generator, int, list)
@@ -242,10 +242,13 @@ getScore board =
 
 type Msg
     = GeneratedBoard Board
+    | GeneratedHint Int Int
     | ClickedCell Int Int
     | ClickedClearRow Int
     | ClickedClearColumn Int
     | ClickedClearBoard
+    | ClickedHint
+    | ClickedNewGame
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -264,6 +267,15 @@ update msg model =
             ( model, Cmd.none )
 
         ClickedClearBoard ->
+            ( model, Cmd.none )
+
+        GeneratedHint rowIndex columnIndex ->
+            ( model, Cmd.none )
+
+        ClickedHint ->
+            ( model, Cmd.none )
+
+        ClickedNewGame ->
             ( model, Cmd.none )
 
 
@@ -299,7 +311,11 @@ viewLoaded board =
     in
     div [ class "main" ]
         [ viewBoard board score
-        , viewTargets score.targets
+        , div
+            [ class "sidebar" ]
+            [ viewTargets score.targets
+            , viewControls completed
+            ]
         ]
 
 
@@ -389,3 +405,20 @@ viewTarget : Target -> Html msg
 viewTarget target =
     span [ class "target" ]
         [ text (fromInt target.value) ]
+
+
+viewControls completed =
+    let
+        contents =
+            singleton <|
+                if completed then
+                    button [ class "control" ]
+                        [ text "New game" ]
+
+                else
+                    button [ class "control" ]
+                        [ text "Hint" ]
+    in
+    div
+        [ class "controls" ]
+        contents
