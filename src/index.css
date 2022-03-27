@@ -7,3 +7,15 @@ body {
     display: flex;
     height: 100%;
 }
+
+.cell.row {
+    background-color: blue;
+}
+
+.cell.column {
+    background-color: yellow;
+}
+
+.target {
+    padding: 8px;
+}

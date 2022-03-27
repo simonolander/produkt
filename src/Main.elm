@@ -1,15 +1,19 @@
 module Main exposing (..)
 
+import Basics.Extra exposing (uncurry)
 import Browser exposing (Document)
 import Html exposing (Html, button, div, span, text)
 import Html.Attributes exposing (class, disabled)
 import Html.Events exposing (onClick)
-import List exposing (all, foldl, indexedMap, maximum, member, singleton, sort)
-import List.Extra exposing (remove, transpose, zip)
+import List exposing (all, concat, foldl, indexedMap, isEmpty, length, maximum, member, singleton, sort)
+import List.Extra exposing (remove, transpose, updateAt, zip)
 import Maybe exposing (withDefault)
+import Maybe.Extra exposing (values)
 import Random exposing (Generator, int, list)
 import Random.Extra exposing (choice, oneIn)
+import Random.List
 import String exposing (fromInt)
+import Tuple exposing (first)
 
 
 
@@ -36,9 +40,8 @@ type ProductState
     | TooHigh
 
 
-type Model
-    = Loading
-    | Loaded Board
+type alias Model =
+    Board
 
 
 type alias Board =
@@ -73,23 +76,38 @@ type alias Score =
 
 
 type Direction
-    = Horizontal
-    | Vertical
+    = Row
+    | Column
 
 
-fromCellState : Direction -> String
-fromCellState cellState =
+fromDirection : Direction -> String
+fromDirection cellState =
     case cellState of
-        Horizontal ->
-            "horizontal"
+        Row ->
+            "row"
 
-        Vertical ->
-            "vertical"
+        Column ->
+            "column"
+
+
+boardWidth : Int
+boardWidth =
+    4
+
+
+boardHeight : Int
+boardHeight =
+    4
+
+
+generateBoardCommand : Cmd Msg
+generateBoardCommand =
+    Random.generate GeneratedBoard (boardGenerator boardWidth boardHeight)
 
 
 init : () -> ( Model, Cmd Msg )
 init =
-    always ( Loading, Random.generate GeneratedBoard (boardGenerator 5 5) )
+    always ( [], generateBoardCommand )
 
 
 boardGenerator : Int -> Int -> Generator Board
@@ -101,7 +119,7 @@ boardGenerator width height =
 
         cellStateGenerator : Generator Direction
         cellStateGenerator =
-            choice Horizontal Vertical
+            choice Row Column
 
         hintGenerator : Generator Bool
         hintGenerator =
@@ -148,11 +166,11 @@ getScore board =
 
         rowProductValues : List Int
         rowProductValues =
-            List.map (multiplyCellValues (hasDirection Horizontal)) board
+            List.map (multiplyCellValues (hasDirection Row)) board
 
         columnProductValues : List Int
         columnProductValues =
-            List.map (multiplyCellValues (hasDirection Vertical)) boardT
+            List.map (multiplyCellValues (hasDirection Column)) boardT
 
         currentProducts : List Int
         currentProducts =
@@ -162,8 +180,8 @@ getScore board =
         targetValues =
             sort <|
                 List.concat
-                    [ List.map (multiplyCellValues (hasFacit Horizontal)) board
-                    , List.map (multiplyCellValues (hasFacit Vertical)) boardT
+                    [ List.map (multiplyCellValues (hasFacit Row)) board
+                    , List.map (multiplyCellValues (hasFacit Column)) boardT
                     ]
 
         maximumTargetValue : Int
@@ -251,32 +269,88 @@ type Msg
     | ClickedNewGame
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        GeneratedBoard board ->
-            ( Loaded board, Cmd.none )
+updateCell : (Cell -> Cell) -> Int -> Int -> Board -> Board
+updateCell f rowIndex columnIndex board =
+    updateAt rowIndex (updateAt columnIndex f) board
 
-        ClickedCell row col ->
-            ( model, Cmd.none )
+
+toggle : Cell -> Cell
+toggle cell =
+    { cell
+        | state =
+            case cell.state of
+                Just Row ->
+                    Just Column
+
+                Just Column ->
+                    Nothing
+
+                Nothing ->
+                    Just Row
+    }
+
+
+clearCell : Cell -> Cell
+clearCell cell =
+    { cell | state = Nothing }
+
+
+hintCell : Cell -> Cell
+hintCell cell =
+    { cell | hint = True }
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg board =
+    case msg of
+        GeneratedBoard newBoard ->
+            ( newBoard, Cmd.none )
+
+        ClickedCell rowIndex colIndex ->
+            ( updateCell toggle rowIndex colIndex board, Cmd.none )
 
         ClickedClearRow rowIndex ->
-            ( model, Cmd.none )
+            ( updateAt rowIndex (List.map clearCell) board, Cmd.none )
 
         ClickedClearColumn columnIndex ->
-            ( model, Cmd.none )
+            ( transpose board |> updateAt columnIndex (List.map clearCell) |> transpose, Cmd.none )
 
         ClickedClearBoard ->
-            ( model, Cmd.none )
+            ( List.map (List.map clearCell) board, Cmd.none )
 
         GeneratedHint rowIndex columnIndex ->
-            ( model, Cmd.none )
+            ( updateCell hintCell rowIndex columnIndex board, Cmd.none )
 
         ClickedHint ->
-            ( model, Cmd.none )
+            let
+                takeIfNotHint : Int -> Int -> Cell -> Maybe ( Int, Int )
+                takeIfNotHint rowIndex columnIndex cell =
+                    if cell.hint then
+                        Nothing
+
+                    else
+                        Just ( rowIndex, columnIndex )
+
+                takeIfNotHints : Int -> List Cell -> List ( Int, Int )
+                takeIfNotHints rowIndex row =
+                    values <| indexedMap (takeIfNotHint rowIndex) row
+
+                hintPositionGenerator : Generator ( Int, Int )
+                hintPositionGenerator =
+                    indexedMap takeIfNotHints board
+                        |> concat
+                        |> Random.List.choose
+                        |> Random.map first
+                        |> Random.map (withDefault ( 0, 0 ))
+
+                cmd : Cmd Msg
+                cmd =
+                    Random.generate (uncurry GeneratedHint) hintPositionGenerator
+            in
+            ( board, cmd )
 
         ClickedNewGame ->
-            ( model, Cmd.none )
+            ( board, generateBoardCommand )
 
 
 
@@ -285,12 +359,11 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    case model of
-        Loading ->
-            viewLoading
+    if isEmpty model then
+        viewLoading
 
-        Loaded board ->
-            viewLoaded board
+    else
+        viewLoaded model
 
 
 viewLoading : Html msg
@@ -327,12 +400,15 @@ viewBoard board score =
             List.indexedMap viewRow (zip board score.rowProducts)
 
         clearButton =
-            button [] []
+            button
+                [ onClick ClickedClearBoard
+                ]
+                [ text "c" ]
 
         productsView =
             div
                 [ class "column-products" ]
-                (indexedMap viewColumnProduct score.columnProducts)
+                (indexedMap viewColumnProduct score.columnProducts ++ [ clearButton ])
 
         contents : List (Html Msg)
         contents =
@@ -364,10 +440,10 @@ viewCell rowIndex columnIndex { state, facit, hint, value } =
     let
         stateClass =
             if hint then
-                fromCellState facit
+                fromDirection facit
 
             else
-                Maybe.map fromCellState state |> withDefault "blank"
+                Maybe.map fromDirection state |> withDefault "blank"
     in
     button
         [ class "cell"
@@ -412,11 +488,17 @@ viewControls completed =
         contents =
             singleton <|
                 if completed then
-                    button [ class "control" ]
+                    button
+                        [ class "control"
+                        , onClick ClickedNewGame
+                        ]
                         [ text "New game" ]
 
                 else
-                    button [ class "control" ]
+                    button
+                        [ class "control"
+                        , onClick ClickedHint
+                        ]
                         [ text "Hint" ]
     in
     div
