@@ -2,8 +2,8 @@ module Main exposing (..)
 
 import Basics.Extra exposing (uncurry)
 import Browser exposing (Document)
-import Html exposing (Html, button, div, span, text)
-import Html.Attributes exposing (class, disabled)
+import Html exposing (Html, button, div, p, span, text)
+import Html.Attributes exposing (class, disabled, title)
 import Html.Events exposing (onClick)
 import List exposing (all, concat, foldl, indexedMap, isEmpty, length, maximum, member, singleton, sort)
 import List.Extra exposing (remove, transpose, updateAt, zip)
@@ -38,6 +38,22 @@ type ProductState
     | Correct
     | Incomplete
     | TooHigh
+
+
+classFromProductState : ProductState -> String.String
+classFromProductState productState =
+    case productState of
+        Incorrect ->
+            "incorrect"
+
+        Correct ->
+            "correct"
+
+        Incomplete ->
+            "incomplete"
+
+        TooHigh ->
+            "too-high"
 
 
 type alias Model =
@@ -123,7 +139,7 @@ boardGenerator width height =
 
         hintGenerator : Generator Bool
         hintGenerator =
-            oneIn 10
+            oneIn 100
 
         cellGenerator : Generator Cell
         cellGenerator =
@@ -383,11 +399,14 @@ viewLoaded board =
             List.all .achieved score.targets
     in
     div [ class "main" ]
-        [ viewBoard board score
-        , div
-            [ class "sidebar" ]
-            [ viewTargets score.targets
-            , viewControls completed
+        [ div
+            [ class "center" ]
+            [ viewBoard board score
+            , div
+                [ class "sidebar" ]
+                [ viewTargets score.targets
+                , viewControls completed
+                ]
             ]
         ]
 
@@ -402,6 +421,7 @@ viewBoard board score =
         clearButton =
             button
                 [ onClick ClickedClearBoard
+                , class "clear-all"
                 ]
                 [ text "c" ]
 
@@ -457,8 +477,11 @@ viewCell rowIndex columnIndex { state, facit, hint, value } =
 viewRowProduct : Int -> Product -> Html Msg
 viewRowProduct rowIndex product =
     button
-        [ class "row-product"
+        [ class "row"
+        , class "product"
+        , class (classFromProductState product.state)
         , onClick (ClickedClearRow rowIndex)
+        , title "Click to clear row"
         ]
         [ text <| fromInt product.value ]
 
@@ -466,7 +489,8 @@ viewRowProduct rowIndex product =
 viewColumnProduct : Int -> Product -> Html Msg
 viewColumnProduct rowIndex product =
     button
-        [ class "column-product"
+        [ class "column"
+        , class "product"
         , onClick (ClickedClearColumn rowIndex)
         ]
         [ text <| fromInt product.value ]
@@ -479,7 +503,7 @@ viewTargets targets =
 
 viewTarget : Target -> Html msg
 viewTarget target =
-    span [ class "target" ]
+    div [ class "target" ]
         [ text (fromInt target.value) ]
 
 
