@@ -96,9 +96,9 @@ type Direction
     | Column
 
 
-fromDirection : Direction -> String
-fromDirection cellState =
-    case cellState of
+classFromDirection : Direction -> String
+classFromDirection direction =
+    case direction of
         Row ->
             "row"
 
@@ -423,12 +423,12 @@ viewBoard board score =
                 [ onClick ClickedClearBoard
                 , class "clear-all"
                 ]
-                [ text "c" ]
+                [ text "🚮" ]
 
         productsView =
             div
                 [ class "column-products" ]
-                (indexedMap viewColumnProduct score.columnProducts ++ [ clearButton ])
+                (indexedMap (viewProduct Column) score.columnProducts ++ [ clearButton ])
 
         contents : List (Html Msg)
         contents =
@@ -446,7 +446,7 @@ viewRow rowIndex ( row, product ) =
 
         productView : Html Msg
         productView =
-            viewRowProduct rowIndex product
+            viewProduct Row rowIndex product
 
         contents : List (Html Msg)
         contents =
@@ -460,10 +460,10 @@ viewCell rowIndex columnIndex { state, facit, hint, value } =
     let
         stateClass =
             if hint then
-                fromDirection facit
+                classFromDirection facit
 
             else
-                Maybe.map fromDirection state |> withDefault "blank"
+                Maybe.map classFromDirection state |> withDefault "blank"
     in
     button
         [ class "cell"
@@ -474,24 +474,29 @@ viewCell rowIndex columnIndex { state, facit, hint, value } =
         [ text <| fromInt value ]
 
 
-viewRowProduct : Int -> Product -> Html Msg
-viewRowProduct rowIndex product =
-    button
-        [ class "row"
-        , class "product"
-        , class (classFromProductState product.state)
-        , onClick (ClickedClearRow rowIndex)
-        , title "Click to clear row"
-        ]
-        [ text <| fromInt product.value ]
+viewProduct : Direction -> Int -> Product -> Html Msg
+viewProduct direction index product =
+    let
+        directionClass =
+            classFromDirection direction
 
+        productStateClass =
+            classFromProductState product.state
 
-viewColumnProduct : Int -> Product -> Html Msg
-viewColumnProduct rowIndex product =
+        clickedMessage =
+            case direction of
+                Row ->
+                    ClickedClearRow
+
+                Column ->
+                    ClickedClearColumn
+    in
     button
-        [ class "column"
+        [ class directionClass
         , class "product"
-        , onClick (ClickedClearColumn rowIndex)
+        , class productStateClass
+        , onClick (clickedMessage index)
+        , title "Click to clear line"
         ]
         [ text <| fromInt product.value ]
 
@@ -503,7 +508,18 @@ viewTargets targets =
 
 viewTarget : Target -> Html msg
 viewTarget target =
-    div [ class "target" ]
+    let
+        achievedClass =
+            if target.achieved then
+                "achieved"
+
+            else
+                ""
+    in
+    div
+        [ class "target"
+        , class achievedClass
+        ]
         [ text (fromInt target.value) ]
 
 
