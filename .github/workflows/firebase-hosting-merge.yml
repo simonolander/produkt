@@ -11,6 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Set build time
+        run: sed --in-place "s/1991-09-19/$(date)/g" src/BuildInfo.elm
+      - name: Set version
+        run: sed --in-place "s/develop/$(git rev-parse --short HEAD)/g" src/BuildInfo.elm
       - run: npm ci && npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:

@@ -135,3 +135,18 @@ input, textarea, button {
 .control {
   width: 100%;
 }
+
+.build-info {
+  position: fixed;
+  right: 0;
+  top: 0;
+  text-align: right;
+  padding: 1em;
+  text-decoration: none;
+  color: $color-primary-dark;
+
+  &:hover {
+    background-color: $color-primary-dark;
+    color: black;
+  }
+}
