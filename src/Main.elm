@@ -3,8 +3,8 @@ module Main exposing (..)
 import Basics.Extra exposing (uncurry)
 import Browser exposing (Document)
 import BuildInfo exposing (buildTime, version)
-import Html exposing (Html, button, div, p, span, text)
-import Html.Attributes exposing (class, disabled, title)
+import Html exposing (Html, a, button, div, p, span, text)
+import Html.Attributes exposing (class, disabled, href, title)
 import Html.Events exposing (onClick)
 import List exposing (all, concat, foldl, indexedMap, isEmpty, length, maximum, member, singleton, sort)
 import List.Extra exposing (remove, transpose, updateAt, zip)
@@ -400,7 +400,22 @@ viewLoaded board =
             List.all .achieved score.targets
     in
     div [ class "main" ]
-        [ div
+        [ a
+            [ class "build-info"
+            , href "https://github.com/simonolander/produkt"
+            ]
+            [ div
+                [ class "build-time"
+                , title "Build time"
+                ]
+                [ text buildTime ]
+            , div
+                [ class "version"
+                , title "Version"
+                ]
+                [ text version ]
+            ]
+        , div
             [ class "center" ]
             [ viewBoard board score
             , div
@@ -408,11 +423,6 @@ viewLoaded board =
                 [ viewTargets score.targets
                 , viewControls completed
                 ]
-            ]
-        , div
-            [ class "build-info" ]
-            [ p [ class "version" ] [ text version ]
-            , p [ class "build-time" ] [ text buildTime ]
             ]
         ]
 
