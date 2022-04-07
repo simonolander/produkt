@@ -2,6 +2,7 @@ module Main exposing (..)
 
 import Basics.Extra exposing (uncurry)
 import Browser exposing (Document)
+import BuildInfo exposing (buildTime, version)
 import Html exposing (Html, button, div, p, span, text)
 import Html.Attributes exposing (class, disabled, title)
 import Html.Events exposing (onClick)
@@ -407,6 +408,11 @@ viewLoaded board =
                 [ viewTargets score.targets
                 , viewControls completed
                 ]
+            ]
+        , div
+            [ class "build-info" ]
+            [ p [ class "version" ] [ text version ]
+            , p [ class "build-time" ] [ text buildTime ]
             ]
         ]
 
