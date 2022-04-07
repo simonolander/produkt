@@ -10,6 +10,14 @@ $color3: #8384df;
 $color-sidebar: #ffd5fa;
 $color-target: #b79ff1;
 $color-target-light: lighten($color-target, 10%);
+$max-cell-size: 256px;
+$max-board-size: $max-cell-size * 4 + 16px;
+$target-font-size: 24px;
+$target-min-size: $target-font-size * 1.5;
+$target-padding: $target-font-size / 2;
+$target-margin: $target-padding / 2;
+$sidebar-max-targets: 3;
+$sidebar-max-width: ($target-min-size + $target-padding * 2 + $target-margin) * $sidebar-max-targets;
 
 
 html {
@@ -38,13 +46,33 @@ input, textarea, button {
 .center {
   display: flex;
   flex-direction: row;
+  flex: 1 1 0;
+  justify-content: center;
+  max-height: 100%;
+
+  @media only screen and (max-width: 960px) {
+    flex-direction: column;
+  }
+}
+
+.board {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  box-sizing: content-box;
+  max-width: $max-board-size;
+}
+
+.board-row, .column-products {
+  display: flex;
+  flex: 1;
 }
 
 .cell, .product, .clear-all {
   border-radius: 0;
   border: none;
-  width: 128px;
-  height: 128px;
+  flex: 1 1 0;
+  aspect-ratio: 1/1;
   font-size: 32px;
 
   &:disabled {
@@ -103,12 +131,13 @@ input, textarea, button {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 8px;
-  min-width: 24px;
-  min-height: 24px;
-  border-radius: 24px;
-  margin-right: 4px;
-  margin-top: 4px;
+  padding: $target-padding;
+  min-width: $target-min-size;
+  min-height: $target-min-size;
+  border-radius: $target-min-size;
+  margin-right: $target-margin;
+  margin-top: $target-margin;
+  font-size: $target-font-size;
   background-color: $color-target;
 
   &.achieved {
@@ -120,20 +149,39 @@ input, textarea, button {
   display: flex;
   flex-direction: column;
   margin-left: 16px;
-  max-width: 256px;
+  max-width: $sidebar-max-width;
   justify-content: space-between;
   background-color: $color-sidebar;
   padding: 16px;
+
+  @media only screen and (max-width: 960px) {
+    box-sizing: border-box;
+    flex-direction: row;
+    margin-left: 0;
+    margin-top: 16px;
+    max-width: none;
+    width: 100%;
+  }
 }
 
 .targets {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+
+  @media only screen and (max-width: 960px) {
+    margin-right: 16px;
+  }
 }
 
 .control {
   width: 100%;
+  font-size: 32px;
+
+  @media only screen and (max-width: 960px) {
+    min-width: 128px;
+    height: 100%;
+  }
 }
 
 .build-info {

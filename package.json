@@ -2,7 +2,10 @@
   "name": "produkt",
   "version": "1.0.0",
   "description": "Simple game about multiplication",
-  "source": "src/index.html",
+  "source": [
+    "src/index.html",
+    "src/404.html"
+  ],
   "scripts": {
     "start": "parcel",
     "build": "parcel build",

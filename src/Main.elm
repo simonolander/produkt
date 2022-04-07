@@ -468,7 +468,7 @@ viewRow rowIndex ( row, product ) =
         contents =
             cellViews ++ [ productView ]
     in
-    div [ class "row" ] contents
+    div [ class "board-row" ] contents
 
 
 viewCell : Int -> Int -> Cell -> Html Msg
@@ -548,14 +548,14 @@ viewControls completed =
                         [ class "control"
                         , onClick ClickedNewGame
                         ]
-                        [ text "New game" ]
+                        [ text "✅" ]
 
                 else
                     button
                         [ class "control"
                         , onClick ClickedHint
                         ]
-                        [ text "Hint" ]
+                        [ text "💡" ]
     in
     div
         [ class "controls" ]
