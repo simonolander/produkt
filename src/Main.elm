@@ -10,7 +10,7 @@ import List exposing (all, concat, foldl, indexedMap, isEmpty, length, maximum, 
 import List.Extra exposing (remove, transpose, updateAt, zip)
 import Maybe exposing (withDefault)
 import Maybe.Extra exposing (values)
-import Random exposing (Generator, int, list)
+import Random exposing (Generator, constant, int, list)
 import Random.Extra exposing (choice, oneIn)
 import Random.List
 import String exposing (fromInt)
@@ -140,7 +140,7 @@ boardGenerator width height =
 
         hintGenerator : Generator Bool
         hintGenerator =
-            oneIn 100
+            constant False
 
         cellGenerator : Generator Cell
         cellGenerator =
