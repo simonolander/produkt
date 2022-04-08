@@ -44,7 +44,7 @@ input, textarea, button {
   align-items: center;
   justify-content: center;
 
-  @media only screen and (max-width: $mobile-max-width) {
+  @media only screen and (orientation: portrait) {
     align-items: start;
   }
 }
@@ -56,7 +56,7 @@ input, textarea, button {
   max-height: 100%;
   z-index: 1;
 
-  @media only screen and (max-width: $mobile-max-width) {
+  @media only screen and (orientation: portrait) {
     flex-direction: column;
   }
 }
@@ -161,7 +161,7 @@ input, textarea, button {
   background-color: $color-sidebar;
   padding: 16px;
 
-  @media only screen and (max-width: $mobile-max-width) {
+  @media only screen and (orientation: portrait) {
     box-sizing: border-box;
     flex-direction: row;
     margin-left: 0;
@@ -176,7 +176,7 @@ input, textarea, button {
   flex-direction: row;
   flex-wrap: wrap;
 
-  @media only screen and (max-width: $mobile-max-width) {
+  @media only screen and (orientation: portrait) {
     margin-right: 16px;
   }
 }
@@ -185,7 +185,7 @@ input, textarea, button {
   width: 100%;
   font-size: 32px;
 
-  @media only screen and (max-width: $mobile-max-width) {
+  @media only screen and (orientation: portrait) {
     min-width: 128px;
     height: 100%;
   }
@@ -206,7 +206,7 @@ input, textarea, button {
     color: black;
   }
 
-  @media only screen and (max-width: $mobile-max-width) {
+  @media only screen and (orientation: portrait) {
     top: auto;
     bottom: 0;
   }
