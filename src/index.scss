@@ -54,10 +54,12 @@ input, textarea, button {
   flex-direction: row;
   flex: 1 1 0;
   max-height: 100%;
+  justify-content: center;
   z-index: 1;
 
   @media only screen and (orientation: portrait) {
     flex-direction: column;
+    justify-content: start;
   }
 }
 
