@@ -93,6 +93,10 @@ input, textarea, button {
   }
 }
 
+.too-high, .incorrect {
+  color: #c50000;
+}
+
 .clear-all {
 }
 
@@ -123,7 +127,7 @@ input, textarea, button {
     }
 
     &:active {
-      background-color: $color-row-darker;
+      background-color: $color-column-darker;
     }
   }
 }

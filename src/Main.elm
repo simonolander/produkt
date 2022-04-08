@@ -3,18 +3,16 @@ module Main exposing (..)
 import Basics.Extra exposing (uncurry)
 import Browser exposing (Document)
 import BuildInfo exposing (buildTime, version)
-import Html exposing (Html, a, button, div, p, span, text)
+import Html exposing (Html, a, button, div, text)
 import Html.Attributes exposing (class, disabled, href, title)
 import Html.Events exposing (onClick)
-import List exposing (all, concat, foldl, indexedMap, isEmpty, length, maximum, member, singleton, sort)
+import List exposing (all, concat, foldl, indexedMap, isEmpty, maximum, member, singleton, sort)
 import List.Extra exposing (remove, transpose, updateAt, zip)
 import Maybe exposing (withDefault)
 import Maybe.Extra exposing (values)
-import Random exposing (Generator, int, list)
-import Random.Extra exposing (choice, oneIn)
-import Random.List
+import Random exposing (Generator, constant, generate, int, list, uniform)
+import Random.Extra exposing (choice)
 import String exposing (fromInt)
-import Tuple exposing (first)
 
 
 
@@ -140,7 +138,7 @@ boardGenerator width height =
 
         hintGenerator : Generator Bool
         hintGenerator =
-            oneIn 100
+            constant False
 
         cellGenerator : Generator Cell
         cellGenerator =
@@ -312,6 +310,15 @@ clearCell cell =
     { cell | state = Nothing }
 
 
+clearIfState : Direction -> Cell -> Cell
+clearIfState direction cell =
+    if cell.state == Just direction then
+        clearCell cell
+
+    else
+        cell
+
+
 hintCell : Cell -> Cell
 hintCell cell =
     { cell | hint = True }
@@ -327,10 +334,10 @@ update msg board =
             ( updateCell toggle rowIndex colIndex board, Cmd.none )
 
         ClickedClearRow rowIndex ->
-            ( updateAt rowIndex (List.map clearCell) board, Cmd.none )
+            ( updateAt rowIndex (List.map (clearIfState Row)) board, Cmd.none )
 
         ClickedClearColumn columnIndex ->
-            ( transpose board |> updateAt columnIndex (List.map clearCell) |> transpose, Cmd.none )
+            ( transpose board |> updateAt columnIndex (List.map (clearIfState Column)) |> transpose, Cmd.none )
 
         ClickedClearBoard ->
             ( List.map (List.map clearCell) board, Cmd.none )
@@ -352,22 +359,28 @@ update msg board =
                 takeIfNotHints rowIndex row =
                     values <| indexedMap (takeIfNotHint rowIndex) row
 
-                hintPositionGenerator : Generator ( Int, Int )
-                hintPositionGenerator =
-                    indexedMap takeIfNotHints board
-                        |> concat
-                        |> Random.List.choose
-                        |> Random.map first
-                        |> Random.map (withDefault ( 0, 0 ))
+                candidatePositions : List ( Int, Int )
+                candidatePositions =
+                    concat <| indexedMap takeIfNotHints board
+
+                maybePositionGenerator : Maybe (Generator ( Int, Int ))
+                maybePositionGenerator =
+                    case candidatePositions of
+                        h :: t ->
+                            Just (uniform h t)
+
+                        [] ->
+                            Nothing
 
                 cmd : Cmd Msg
                 cmd =
-                    Random.generate (uncurry GeneratedHint) hintPositionGenerator
+                    Maybe.map (generate (uncurry GeneratedHint)) maybePositionGenerator
+                        |> withDefault Cmd.none
             in
             ( board, cmd )
 
         ClickedNewGame ->
-            ( board, generateBoardCommand )
+            ( [], generateBoardCommand )
 
 
 
