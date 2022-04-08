@@ -371,7 +371,7 @@ update msg board =
             ( board, cmd )
 
         ClickedNewGame ->
-            ( board, generateBoardCommand )
+            ( [], generateBoardCommand )
 
 
 
