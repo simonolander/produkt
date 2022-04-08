@@ -310,6 +310,15 @@ clearCell cell =
     { cell | state = Nothing }
 
 
+clearIfState : Direction -> Cell -> Cell
+clearIfState direction cell =
+    if cell.state == Just direction then
+        clearCell cell
+
+    else
+        cell
+
+
 hintCell : Cell -> Cell
 hintCell cell =
     { cell | hint = True }
@@ -325,10 +334,10 @@ update msg board =
             ( updateCell toggle rowIndex colIndex board, Cmd.none )
 
         ClickedClearRow rowIndex ->
-            ( updateAt rowIndex (List.map clearCell) board, Cmd.none )
+            ( updateAt rowIndex (List.map (clearIfState Row)) board, Cmd.none )
 
         ClickedClearColumn columnIndex ->
-            ( transpose board |> updateAt columnIndex (List.map clearCell) |> transpose, Cmd.none )
+            ( transpose board |> updateAt columnIndex (List.map (clearIfState Column)) |> transpose, Cmd.none )
 
         ClickedClearBoard ->
             ( List.map (List.map clearCell) board, Cmd.none )
