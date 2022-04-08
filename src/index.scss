@@ -72,6 +72,7 @@ input, textarea, button {
 .board-row, .column-products {
   display: flex;
   flex: 1;
+  min-height: 0;
 }
 
 .cell, .product, .clear-all {
